@@ -30,15 +30,6 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  // Parse body for POST
-  if (!req.body) {
-    req.body = {};
-    if (req.method === 'POST') {
-      const raw = await getBody(req);
-      if (raw) try { req.body = JSON.parse(raw); } catch(e) {}
-    }
-  }
-
   try { await initTables(); } catch (e) { console.log('DB init error:', e.message); }
   const db = getPool();
   const url = req.url.split('?')[0];
@@ -55,15 +46,6 @@ module.exports = async (req, res) => {
         setTimeout(() => ok(q), 3000);
       });
     } catch(e) { req.body = { ...q }; }
-  }
-    try {
-      await new Promise((ok) => {
-        let raw = '';
-        req.on('data', c => raw += c);
-        req.on('end', () => { if (raw) try { req.body = JSON.parse(raw); } catch(e) {} ok(); });
-        setTimeout(ok, 3000);
-      });
-    } catch(e) {}
   }
 
   try {

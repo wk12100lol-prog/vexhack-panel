@@ -222,9 +222,9 @@ module.exports = async (req, res) => {
       return res.json({ success: true });
     }
 
-    // DISCORD: USER VERIFIES CODE
+    // DISCORD: USER VERIFIES CODE + SETS PASSWORD
     if (url === '/api/discord/verify' && req.method === 'POST') {
-      const { code } = req.body;
+      const { code, password } = req.body;
       const result = await db.query('SELECT * FROM discord_codes WHERE code = $1 AND used = false AND expires_at > NOW()', [code]);
       if (result.rows.length === 0) return res.status(400).json({ error: 'Nieprawidłowy lub wygasły kod!' });
 
@@ -232,7 +232,13 @@ module.exports = async (req, res) => {
       await db.query('UPDATE discord_codes SET used = true WHERE code = $1', [code]);
       await db.query('INSERT INTO discord_users (discord_id, discord_username, role_id) VALUES ($1,$2,$3) ON CONFLICT (discord_id) DO UPDATE SET discord_username = $2', [data.discord_id, data.discord_username, data.role_id]);
 
-      return res.json({ success: true, discordId: data.discord_id, discordUsername: data.discord_username, message: 'Zweryfikowano przez Discord!' });
+      // Save as regular user so they can log in via login.html
+      if (password) {
+        const screenshots = JSON.stringify(['discord_verified']);
+        await db.query('INSERT INTO users (username, password, screenshots, approved) VALUES ($1, $2, $3, true) ON CONFLICT (username) DO UPDATE SET password = $2, approved = true', [data.discord_username, password, screenshots]);
+      }
+
+      return res.json({ success: true, discordId: data.discord_id, discordUsername: data.discord_username, message: 'Konto połączone! Możesz się logować.' });
     }
 
     // DISCORD: CHECK IF USER IS VERIFIED

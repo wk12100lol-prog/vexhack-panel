@@ -21,16 +21,6 @@ async function initTables() {
   console.log('✅ Tabele gotowe!');
 }
 
-async function getBody(req) {
-  return new Promise((resolve) => {
-    let body = '';
-    const cb = () => resolve(body);
-    req.on('data', c => { body += c; });
-    req.on('end', cb);
-    setTimeout(cb, 5000);
-  });
-}
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -52,6 +42,7 @@ module.exports = async (req, res) => {
   try { await initTables(); } catch (e) { console.log('DB init error:', e.message); }
   const db = getPool();
   const url = req.url.split('?')[0];
+  req.body = {};
 
   try {
     // TEST ECHO
@@ -59,9 +50,11 @@ module.exports = async (req, res) => {
       return res.json({ received: req.body, method: 'POST' });
     }
 
-    // ADMIN LOGIN (always works, no DB needed)
-    if (url === '/api/login' && req.method === 'POST') {
-      const { username, password } = req.body;
+    // ADMIN LOGIN (GET with params)
+    if (url === '/api/login') {
+      const params = new URLSearchParams(req.url.split('?')[1] || '');
+      const username = params.get('username') || req.body?.username;
+      const password = params.get('password') || req.body?.password;
       if (username === 'admin' && password === 'vexhack2026') {
         return res.json({ success: true, isAdmin: true, token: 'admin_' + Date.now() });
       }

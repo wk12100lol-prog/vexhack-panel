@@ -30,11 +30,26 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  await initTables();
+  try { await initTables(); } catch (e) { console.log('DB init error:', e.message); }
   const db = getPool();
   const url = req.url.split('?')[0];
 
   try {
+    // ADMIN LOGIN (always works, no DB needed)
+    if (url === '/api/login' && req.method === 'POST') {
+      const { username, password } = req.body;
+      if (username === 'admin' && password === 'vexhack2026') {
+        return res.json({ success: true, isAdmin: true, token: 'admin_' + Date.now() });
+      }
+      try {
+        const result = await db.query('SELECT * FROM users WHERE username = $1 AND password = $2 AND approved = true', [username, password]);
+        if (result.rows.length > 0) {
+          return res.json({ success: true, isAdmin: false, userId: result.rows[0].id, token: 'user_' + result.rows[0].id });
+        }
+      } catch (e) {}
+      return res.status(401).json({ error: 'Nieprawidłowy login lub hasło!' });
+    }
+
     // REGISTER
     if (url === '/api/register' && req.method === 'POST') {
       const { username, password, screenshots } = req.body;
@@ -46,19 +61,6 @@ module.exports = async (req, res) => {
       await db.query('INSERT INTO users (username, password, screenshots) VALUES ($1, $2, $3)', [username, password, JSON.stringify(screenshots || [])]);
       console.log(`📝 Rejestracja: ${username}`);
       return res.json({ success: true, message: 'Konto utworzone! Czekaj na akceptację.' });
-    }
-
-    // LOGIN
-    if (url === '/api/login' && req.method === 'POST') {
-      const { username, password } = req.body;
-      if (username === 'admin' && password === 'vexhack2026') {
-        return res.json({ success: true, isAdmin: true, token: 'admin_' + Date.now() });
-      }
-      const result = await db.query('SELECT * FROM users WHERE username = $1 AND password = $2 AND approved = true', [username, password]);
-      if (result.rows.length > 0) {
-        return res.json({ success: true, isAdmin: false, userId: result.rows[0].id, token: 'user_' + result.rows[0].id });
-      }
-      return res.status(401).json({ error: 'Nieprawidłowy login lub hasło!' });
     }
 
     // PENDING

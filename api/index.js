@@ -16,6 +16,8 @@ async function initTables() {
   const db = getPool();
   await db.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username VARCHAR(50) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, screenshots JSONB DEFAULT '[]', approved BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, approved_at TIMESTAMP)`);
   await db.query(`CREATE TABLE IF NOT EXISTS plugins (id VARCHAR(50) PRIMARY KEY, name VARCHAR(100) NOT NULL, description TEXT, link VARCHAR(500), code VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+  await db.query(`CREATE TABLE IF NOT EXISTS discord_codes (code VARCHAR(10) PRIMARY KEY, discord_id VARCHAR(50), discord_username VARCHAR(100), role_id VARCHAR(50), expires_at TIMESTAMP, used BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+  await db.query(`CREATE TABLE IF NOT EXISTS discord_users (discord_id VARCHAR(50) PRIMARY KEY, discord_username VARCHAR(100), role_id VARCHAR(50), linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
   console.log('✅ Tabele gotowe!');
 }
 
@@ -187,6 +189,35 @@ module.exports = async (req, res) => {
       }
 
       return res.json({ success: true, message: `Wstawiono ${added} pluginów!` });
+    }
+
+    // DISCORD: BOT STORES CODE
+    if (url === '/api/discord/code' && req.method === 'POST') {
+      const { code, discordId, discordUsername, discordRole } = req.body;
+      const expires = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+      await db.query('INSERT INTO discord_codes (code, discord_id, discord_username, role_id, expires_at) VALUES ($1,$2,$3,$4,$5)', [code, discordId, discordUsername, discordRole, expires]);
+      return res.json({ success: true });
+    }
+
+    // DISCORD: USER VERIFIES CODE
+    if (url === '/api/discord/verify' && req.method === 'POST') {
+      const { code } = req.body;
+      const result = await db.query('SELECT * FROM discord_codes WHERE code = $1 AND used = false AND expires_at > NOW()', [code]);
+      if (result.rows.length === 0) return res.status(400).json({ error: 'Nieprawidłowy lub wygasły kod!' });
+
+      const data = result.rows[0];
+      await db.query('UPDATE discord_codes SET used = true WHERE code = $1', [code]);
+      await db.query('INSERT INTO discord_users (discord_id, discord_username, role_id) VALUES ($1,$2,$3) ON CONFLICT (discord_id) DO UPDATE SET discord_username = $2', [data.discord_id, data.discord_username, data.role_id]);
+
+      return res.json({ success: true, discordId: data.discord_id, discordUsername: data.discord_username, message: 'Zweryfikowano przez Discord!' });
+    }
+
+    // DISCORD: CHECK IF USER IS VERIFIED
+    if (url === '/api/discord/check' && req.method === 'POST') {
+      const { discordId } = req.body;
+      const result = await db.query('SELECT * FROM discord_users WHERE discord_id = $1', [discordId]);
+      if (result.rows.length > 0) return res.json({ linked: true, user: result.rows[0] });
+      return res.json({ linked: false });
     }
 
     return res.status(404).json({ message: 'Not found' });

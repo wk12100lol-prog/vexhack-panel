@@ -21,15 +21,14 @@
     .step-text code { background:rgba(120,80,255,0.2); padding:2px 8px; border-radius:6px; color:white; font-weight:700; }
     input { width:100%; padding:16px; background:var(--bg); border:2px solid var(--border); border-radius:12px; color:white; font-size:18px; text-align:center; transition:border-color 0.3s; margin-bottom:12px; }
     input:focus { outline:none; border-color:var(--accent); }
-    input::placeholder { color:var(--text-muted); font-size:14px; letter-spacing:normal; }
+    input::placeholder { color:var(--text-muted); font-size:14px; }
     #codeInput { font-size:22px; font-family:monospace; letter-spacing:6px; }
-    button { width:100%; padding:16px; background:linear-gradient(135deg,#5865F2,#4752C4); border:none; border-radius:12px; color:white; font-size:16px; font-weight:600; cursor:pointer; transition:all 0.3s; margin-top:4px; }
-    button:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(88,101,242,0.4); }
+    button { width:100%; padding:16px; background:linear-gradient(135deg,#7850ff,#a855f7); border:none; border-radius:12px; color:white; font-size:16px; font-weight:600; cursor:pointer; transition:all 0.3s; margin-top:4px; }
+    button:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(120,80,255,0.4); }
     button:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
     .message { padding:14px; border-radius:10px; margin-top:12px; font-size:14px; display:none; }
     .message.success { background:rgba(34,197,94,0.15); border:1px solid var(--success); color:var(--success); }
     .message.error { background:rgba(239,68,68,0.15); border:1px solid var(--error); color:var(--error); }
-    .step-input { display:none; }
     .link { margin-top:20px; color:var(--text-muted); font-size:14px; }
     .link a { color:var(--accent); text-decoration:none; }
   </style>
@@ -39,7 +38,7 @@
     <div class="icon">💬</div>
     <div class="logo">VexHack</div>
     <h1>Połącz z Discord</h1>
-    <p>Masz rolę na serwerze VexHack? Użyj kodu z Discorda!</p>
+    <p>Wpisz kod z Discorda i ustaw hasło do konta</p>
 
     <div class="steps">
       <div class="step">
@@ -52,16 +51,14 @@
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <div class="step-text">Wpisz kod i <strong>ustaw hasło</strong> do logowania</div>
+        <div class="step-text">Wpisz kod i hasło poniżej, gotowe!</div>
       </div>
     </div>
 
     <input type="text" id="codeInput" placeholder="Kod z Discorda" maxlength="6" autocomplete="off">
-    <div class="step-input" id="passwordStep">
-      <input type="password" id="passInput" placeholder="Ustaw hasło do konta">
-      <input type="password" id="passInput2" placeholder="Powtórz hasło">
-    </div>
-    <button id="verifyBtn" onclick="verifyCode()">🔐 Zweryfikuj</button>
+    <input type="password" id="passInput" placeholder="Hasło do konta (min. 4 znaki)">
+    <input type="password" id="passInput2" placeholder="Powtórz hasło">
+    <button id="verifyBtn" onclick="verifyCode()">🔐 Połącz i utwórz konto</button>
     <div class="message" id="message"></div>
 
     <div class="link">
@@ -70,9 +67,6 @@
   </div>
 
   <script>
-    let codeVerified = false;
-    let discordData = null;
-
     async function verifyCode() {
       const code = document.getElementById('codeInput').value.trim();
       const pass = document.getElementById('passInput').value;
@@ -80,89 +74,39 @@
       const btn = document.getElementById('verifyBtn');
       const msg = document.getElementById('message');
 
-      if (!codeVerified) {
-        if (code.length !== 6 || !/^\d+$/.test(code)) {
-          msg.className = 'message error';
-          msg.textContent = 'Kod musi mieć 6 cyfr!';
-          msg.style.display = 'block';
-          return;
-        }
-        btn.disabled = true;
-        btn.textContent = 'Sprawdzanie kodu...';
-        msg.style.display = 'none';
+      if (code.length !== 6 || !/^\d+$/.test(code)) {
+        msg.className = 'message error'; msg.textContent = 'Kod musi mieć 6 cyfr!'; msg.style.display = 'block'; return;
+      }
+      if (!pass || pass.length < 4) {
+        msg.className = 'message error'; msg.textContent = 'Hasło musi mieć min. 4 znaki!'; msg.style.display = 'block'; return;
+      }
+      if (pass !== pass2) {
+        msg.className = 'message error'; msg.textContent = 'Hasła nie są identyczne!'; msg.style.display = 'block'; return;
+      }
 
-        try {
-          const res = await fetch('/api/discord/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-          const data = await res.json();
-          if (data.success) {
-            codeVerified = true;
-            discordData = data;
-            document.getElementById('codeInput').style.display = 'none';
-            document.getElementById('passwordStep').style.display = 'block';
-            btn.textContent = '🔐 Ustaw hasło i połącz';
-            btn.style.background = 'linear-gradient(135deg,#7850ff,#a855f7)';
-            msg.className = 'message success';
-            msg.textContent = '✅ Kod poprawny! Teraz ustaw hasło.';
-            msg.style.display = 'block';
-            btn.disabled = false;
-          } else {
-            msg.className = 'message error';
-            msg.textContent = '❌ ' + (data.error || 'Nieprawidłowy kod!');
-            msg.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = '🔐 Zweryfikuj';
-          }
-        } catch (e) {
-          msg.className = 'message error';
-          msg.textContent = '❌ Błąd połączenia!';
-          msg.style.display = 'block';
-          btn.disabled = false;
-        }
-      } else {
-        if (!pass || pass.length < 4) {
-          msg.className = 'message error';
-          msg.textContent = 'Hasło musi mieć min. 4 znaki!';
-          msg.style.display = 'block';
-          return;
-        }
-        if (pass !== pass2) {
-          msg.className = 'message error';
-          msg.textContent = 'Hasła nie są identyczne!';
-          msg.style.display = 'block';
-          return;
-        }
-        btn.disabled = true;
-        btn.textContent = 'Zapisywanie...';
+      btn.disabled = true; btn.textContent = 'Łączenie...'; msg.style.display = 'none';
 
-        try {
-          const res = await fetch('/api/discord/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: document.getElementById('codeInput').value, password: pass }) });
-          const data = await res.json();
-          if (data.success) {
-            localStorage.setItem('vexpanel_user', JSON.stringify({ isAdmin: false, discordId: data.discordId, username: data.discordUsername, token: 'user_' + Date.now() }));
-            msg.className = 'message success';
-            msg.textContent = '✅ Konto utworzone! Możesz się logować.';
-            msg.style.display = 'block';
-            btn.textContent = '✅ Gotowe!';
-            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
-          } else {
-            msg.className = 'message error';
-            msg.textContent = '❌ ' + (data.error || 'Błąd!');
-            msg.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = '🔐 Ustaw hasło i połącz';
-          }
-        } catch (e) {
-          msg.className = 'message error';
-          msg.textContent = '❌ Błąd połączenia!';
-          msg.style.display = 'block';
-          btn.disabled = false;
+      try {
+        const res = await fetch('/api/discord/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, password: pass }) });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('vexpanel_user', JSON.stringify({ isAdmin: false, discordId: data.discordId, username: data.discordUsername, token: 'user_' + Date.now() }));
+          msg.className = 'message success'; msg.textContent = '✅ Konto utworzone! Za chwilę zostaniesz przekierowany.'; msg.style.display = 'block';
+          btn.textContent = '✅ Gotowe!';
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+        } else {
+          msg.className = 'message error'; msg.textContent = '❌ ' + (data.error || 'Błąd!'); msg.style.display = 'block';
+          btn.disabled = false; btn.textContent = '🔐 Połącz i utwórz konto';
         }
+      } catch (e) {
+        msg.className = 'message error'; msg.textContent = '❌ Błąd połączenia!'; msg.style.display = 'block';
+        btn.disabled = false; btn.textContent = '🔐 Połącz i utwórz konto';
       }
     }
 
-    document.getElementById('codeInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyCode(); });
-    document.getElementById('passInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyCode(); });
-    document.getElementById('passInput2').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifyCode(); });
+    document.getElementById('codeInput').addEventListener('keypress', e => { if (e.key === 'Enter') verifyCode(); });
+    document.getElementById('passInput').addEventListener('keypress', e => { if (e.key === 'Enter') verifyCode(); });
+    document.getElementById('passInput2').addEventListener('keypress', e => { if (e.key === 'Enter') verifyCode(); });
   </script>
 </body>
 </html>

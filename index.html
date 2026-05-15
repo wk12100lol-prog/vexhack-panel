@@ -83,7 +83,7 @@
       </div>
     </div>
     
-    <div class="buttons">
+    <div class="buttons" id="mainButtons">
       <a href="register.html" class="btn-primary">📝 Zarejestruj się</a>
       <a href="https://discord.gg/vexhack.py" class="btn-discord" target="_blank">💬 Dołącz na Discord</a>
     </div>
@@ -137,5 +137,14 @@
   <footer>
     <p>© 2026 VexHack. Wszelkie prawa zastrzeżone.</p>
   </footer>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('vexpanel_user') || '{}');
+    if (user.token) {
+      document.getElementById('mainButtons').innerHTML = user.isAdmin
+        ? '<a href="admin.html" class="btn-primary">👑 Panel Admina</a><a href="https://discord.gg/vexhack.py" class="btn-discord" target="_blank">💬 Discord</a>'
+        : '<a href="dashboard.html" class="btn-primary">📦 Dashboard</a><a href="https://discord.gg/vexhack.py" class="btn-discord" target="_blank">💬 Discord</a>';
+    }
+  </script>
 </body>
 </html>

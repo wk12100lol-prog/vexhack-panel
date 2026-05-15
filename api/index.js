@@ -21,6 +21,16 @@ async function initTables() {
   console.log('✅ Tabele gotowe!');
 }
 
+async function getBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    const cb = () => resolve(body);
+    req.on('data', c => { body += c; });
+    req.on('end', cb);
+    setTimeout(cb, 5000);
+  });
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -34,14 +44,8 @@ module.exports = async (req, res) => {
   if (!req.body) {
     req.body = {};
     if (req.method === 'POST') {
-      try {
-        const chunks = [];
-        const ended = await new Promise(r => { req.on('data', c => chunks.push(c)); req.on('end', r); setTimeout(() => r('timeout'), 5000); });
-        if (ended !== 'timeout' && chunks.length) {
-          const body = Buffer.concat(chunks).toString();
-          if (body) req.body = JSON.parse(body);
-        }
-      } catch (e) {}
+      const raw = await getBody(req);
+      if (raw) try { req.body = JSON.parse(raw); } catch(e) {}
     }
   }
 

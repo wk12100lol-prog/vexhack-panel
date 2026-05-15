@@ -30,14 +30,31 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  // Vercel provides req.body for JSON content type
-  if (!req.body) req.body = {};
+  // Parse body for POST
+  if (!req.body) {
+    req.body = {};
+    if (req.method === 'POST') {
+      try {
+        const chunks = [];
+        const ended = await new Promise(r => { req.on('data', c => chunks.push(c)); req.on('end', r); setTimeout(() => r('timeout'), 5000); });
+        if (ended !== 'timeout' && chunks.length) {
+          const body = Buffer.concat(chunks).toString();
+          if (body) req.body = JSON.parse(body);
+        }
+      } catch (e) {}
+    }
+  }
 
   try { await initTables(); } catch (e) { console.log('DB init error:', e.message); }
   const db = getPool();
   const url = req.url.split('?')[0];
 
   try {
+    // TEST ECHO
+    if (url === '/api/echo' && req.method === 'POST') {
+      return res.json({ received: req.body, method: 'POST' });
+    }
+
     // ADMIN LOGIN (always works, no DB needed)
     if (url === '/api/login' && req.method === 'POST') {
       const { username, password } = req.body;

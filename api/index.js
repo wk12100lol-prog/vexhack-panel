@@ -30,16 +30,8 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  // Parse JSON body for POST requests
-  if (req.method === 'POST' && !req.body) {
-    try {
-      let body = '';
-      for await (const chunk of req) body += chunk;
-      req.body = JSON.parse(body);
-    } catch (e) {
-      req.body = {};
-    }
-  }
+  // Vercel provides req.body for JSON content type
+  if (!req.body) req.body = {};
 
   try { await initTables(); } catch (e) { console.log('DB init error:', e.message); }
   const db = getPool();

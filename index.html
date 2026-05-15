@@ -55,9 +55,9 @@
       <li><a href="#o-nas">O nas</a></li>
       <li><a href="#kontakt">Kontakt</a></li>
     </ul>
-    <div class="nav-right">
-      <a href="register.html" class="btn">📝 Rejestracja</a>
-      <a href="login.html" class="dc-btn">🔐 Zaloguj</a>
+    <div class="nav-right" id="navRight">
+      <a href="register.html" class="btn" id="navRegister">📝 Rejestracja</a>
+      <a href="login.html" class="dc-btn" id="navLogin">🔐 Zaloguj</a>
     </div>
   </nav>
 
@@ -141,6 +141,9 @@
   <script>
     const user = JSON.parse(localStorage.getItem('vexpanel_user') || '{}');
     if (user.token) {
+      document.getElementById('navRight').innerHTML = user.isAdmin
+        ? '<a href="admin.html" class="dc-btn">👑 Panel Admina</a><a href="#" class="btn" onclick="localStorage.removeItem(\'vexpanel_user\');location.reload()">Wyloguj</a>'
+        : '<a href="dashboard.html" class="dc-btn">📦 Dashboard</a><a href="#" class="btn" onclick="localStorage.removeItem(\'vexpanel_user\');location.reload()">Wyloguj</a>';
       document.getElementById('mainButtons').innerHTML = user.isAdmin
         ? '<a href="admin.html" class="btn-primary">👑 Panel Admina</a><a href="https://discord.gg/vexhack.py" class="btn-discord" target="_blank">💬 Discord</a>'
         : '<a href="dashboard.html" class="btn-primary">📦 Dashboard</a><a href="https://discord.gg/vexhack.py" class="btn-discord" target="_blank">💬 Discord</a>';

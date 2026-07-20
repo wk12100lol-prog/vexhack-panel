@@ -3,158 +3,220 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VexHack Panel - Rejestracja</title>
+  <title>VexHack - Rejestracja</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root { --bg: #0a0a0f; --surface: #1a1a25; --text: #fff; --text-muted: #a0a0b0; --accent: #7850ff; --success: #22c55e; --error: #ef4444; --border: #2a2a3a; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .container { max-width: 500px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 40px; text-align: center; }
-    .logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
-    .logo img { height: 36px; width: auto; }
-    .logo span { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, #7850ff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    h1 { font-size: 22px; margin-bottom: 10px; }
-    p { color: var(--text-muted); margin-bottom: 25px; line-height: 1.6; }
-    .icon { font-size: 60px; margin-bottom: 15px; }
-    input[type="text"], input[type="password"] {
-      width: 100%; padding: 14px 18px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: white; font-size: 16px; margin-bottom: 15px; transition: border-color 0.3s;
+    :root {
+      --bg: #07070d; --surface: #12121e; --surface2: #1a1a2e;
+      --text: #f0f0f5; --text-muted: #8a8aa0;
+      --accent: #7850ff; --accent2: #a855f7;
+      --border: #22223a;
+      --success: #22c55e; --error: #ef4444;
+      --radius: 16px; --radius-sm: 10px;
+      --glass: rgba(18,18,30,0.85);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 40px;
+      background: var(--glass); backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo img { height: 30px; width: auto; }
+    .logo span {
+      font-size: 22px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 8px; list-style: none; align-items: center; }
+    .nav-links a {
+      padding: 8px 18px; border-radius: var(--radius-sm);
+      color: var(--text-muted); text-decoration: none;
+      font-size: 14px; font-weight: 500; transition: all 0.25s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface2); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+    .center {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 100px 20px 40px;
+    }
+    .card {
+      max-width: 500px; width: 100%;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px; text-align: center;
+    }
+    .card-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 4px; }
+    .card-logo img { height: 34px; width: auto; }
+    .card-logo span {
+      font-size: 34px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    h1 { font-size: 20px; margin-bottom: 6px; }
+    .sub { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; line-height: 1.6; }
+    input {
+      width: 100%; padding: 14px 18px;
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: var(--radius-sm); color: white; font-size: 15px;
+      margin-bottom: 14px; transition: border-color 0.3s;
     }
     input:focus { outline: none; border-color: var(--accent); }
-    label { display: block; text-align: left; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; margin-top: 10px; }
+    label { display: block; text-align: left; margin-bottom: 8px; color: var(--text-muted); font-size: 13px; margin-top: 4px; }
     .file-upload {
-      border: 2px dashed var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s; position: relative;
+      border: 2px dashed var(--border); border-radius: var(--radius-sm);
+      padding: 20px; margin-bottom: 14px; cursor: pointer;
+      transition: all 0.3s; position: relative;
     }
-    .file-upload:hover { border-color: var(--accent); background: rgba(120,80,255,0.05); }
+    .file-upload:hover { border-color: var(--accent); background: rgba(120,80,255,0.04); }
     .file-upload input { position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; }
-    .file-upload .hint { font-size: 14px; color: var(--text-muted); }
+    .file-upload .hint { font-size: 13px; color: var(--text-muted); pointer-events: none; }
     .file-upload .hint strong { color: var(--accent); }
-    .preview { max-width: 100%; max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; object-fit: contain; }
-    button { width: 100%; padding: 16px; background: linear-gradient(135deg, #7850ff, #a855f7); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
-    button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(120,80,255,0.4); }
+    .preview { max-width: 100%; max-height: 130px; border-radius: 8px; margin-top: 10px; display: none; object-fit: contain; }
+    button {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: var(--radius-sm);
+      color: white; font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: all 0.3s; margin-top: 6px;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(120,80,255,0.35); }
     button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .message { padding: 14px; border-radius: 10px; margin-top: 15px; font-size: 14px; display: none; }
-    .message.success { background: rgba(34,197,94,0.15); border: 1px solid var(--success); color: var(--success); }
-    .message.error { background: rgba(239,68,68,0.15); border: 1px solid var(--error); color: var(--error); }
+    .message {
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      margin-top: 14px; font-size: 14px; display: none;
+    }
+    .message.success { background: rgba(34,197,94,0.12); border: 1px solid var(--success); color: var(--success); }
+    .message.error { background: rgba(239,68,68,0.12); border: 1px solid var(--error); color: var(--error); }
     .link { margin-top: 20px; color: var(--text-muted); font-size: 14px; }
-    .link a { color: var(--accent); text-decoration: none; }
+    .link a { color: var(--accent); text-decoration: none; font-weight: 500; }
     .link a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .hamburger { display: flex; }
+      .nav-links {
+        display: none; position: fixed; top: 60px; left: 0; right: 0;
+        flex-direction: column; padding: 16px; gap: 4px;
+        background: var(--glass); backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { width: 100%; text-align: center; padding: 12px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon">📝</div>
-    <div class="logo">
-      <img src="logo.png" alt="VexHack">
-      <span>VexHack</span>
+  <nav>
+    <a href="/" class="logo"><img src="logo.png" alt="VexHack"><span>VexHack</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Strona główna</a>
+      <a href="login.html">Logowanie</a>
     </div>
-    <h1>Rejestracja</h1>
-    <p>Utwórz konto aby uzyskać dostęp do panelu z pluginami</p>
-    
-    <form id="registerForm">
-      <input type="text" id="username" placeholder="Nazwa użytkownika" required>
-      <input type="password" id="password" placeholder="Hasło" required>
-      <input type="password" id="password2" placeholder="Powtórz hasło" required>
-      
-      <label>📸 Screenshot #1 (Kanał YouTube V0idVex)</label>
-      <div class="file-upload" id="drop1">
-        <input type="file" accept="image/*" onchange="previewFile(this, 'preview1')">
-        <div class="hint">Kliknij lub przeciągnij screenshot<br><strong>YouTube V0idVex</strong></div>
-        <img class="preview" id="preview1">
-      </div>
-      
-      <label>📸 Screenshot #2 (Kanał WOJTEK6435)</label>
-      <div class="file-upload" id="drop2">
-        <input type="file" accept="image/*" onchange="previewFile(this, 'preview2')">
-        <div class="hint">Kliknij lub przeciągnij screenshot<br><strong>YouTube WOJTEK6435</strong></div>
-        <img class="preview" id="preview2">
-      </div>
-      
-      <button type="submit" id="submitBtn">Zarejestruj się</button>
-      <div class="message" id="message"></div>
-    </form>
-    
-    <div class="link">
-      Masz już konto? <a href="login.html">Zaloguj się</a>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="center">
+    <div class="card">
+      <div class="card-logo"><img src="logo.png" alt="VexHack"><span>VexHack</span></div>
+      <h1>Rejestracja</h1>
+      <p class="sub">Utwórz konto aby uzyskać dostęp do panelu z pluginami</p>
+      <form id="registerForm">
+        <input type="text" id="username" placeholder="Nazwa użytkownika" required>
+        <input type="password" id="password" placeholder="Hasło" required>
+        <input type="password" id="password2" placeholder="Powtórz hasło" required>
+        <label>📸 Screenshot #1 (YouTube V0idVex)</label>
+        <div class="file-upload">
+          <input type="file" accept="image/*" onchange="previewFile(this, 'preview1')">
+          <div class="hint">Kliknij lub przeciągnij screenshot<br><strong>YouTube V0idVex</strong></div>
+          <img class="preview" id="preview1">
+        </div>
+        <label>📸 Screenshot #2 (YouTube WOJTEK6435)</label>
+        <div class="file-upload">
+          <input type="file" accept="image/*" onchange="previewFile(this, 'preview2')">
+          <div class="hint">Kliknij lub przeciągnij screenshot<br><strong>YouTube WOJTEK6435</strong></div>
+          <img class="preview" id="preview2">
+        </div>
+        <button type="submit" id="submitBtn">Zarejestruj się</button>
+        <div class="message" id="message"></div>
+      </form>
+      <div class="link">Masz już konto? <a href="login.html">Zaloguj się</a></div>
     </div>
   </div>
 
   <script>
+    function toggleMenu() {
+      document.getElementById('hamburger').classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('hamburger').classList.remove('open');
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
     let screenData = [null, null];
-    
     function previewFile(input, previewId) {
       const img = document.getElementById(previewId);
       const file = input.files[0];
-      
       if (file) {
         img.style.display = 'block';
         img.src = URL.createObjectURL(file);
-        
         const reader = new FileReader();
         reader.onload = function(e) {
-          const idx = previewId === 'preview1' ? 0 : 1;
-          screenData[idx] = e.target.result;
+          screenData[previewId === 'preview1' ? 0 : 1] = e.target.result;
         };
         reader.readAsDataURL(file);
       }
     }
-    
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const password2 = document.getElementById('password2').value;
       const btn = document.getElementById('submitBtn');
       const msg = document.getElementById('message');
-      
       if (password !== password2) {
-        msg.className = 'message error';
-        msg.textContent = 'Hasła nie są identyczne!';
-        msg.style.display = 'block';
-        return;
+        msg.className = 'message error'; msg.textContent = 'Hasła nie są identyczne!'; msg.style.display = 'block'; return;
       }
-      
       if (!screenData[0] || !screenData[1]) {
-        msg.className = 'message error';
-        msg.textContent = 'Dodaj oba screenshoty!';
-        msg.style.display = 'block';
-        return;
+        msg.className = 'message error'; msg.textContent = 'Dodaj oba screenshoty!'; msg.style.display = 'block'; return;
       }
-      
-      btn.disabled = true;
-      btn.textContent = 'Rejestracja...';
-      msg.className = 'message';
-      msg.textContent = 'Wysyłanie...';
-      msg.style.display = 'block';
-      
+      btn.disabled = true; btn.textContent = 'Rejestracja...';
+      msg.className = 'message'; msg.textContent = 'Wysyłanie...'; msg.style.display = 'block';
       try {
-        const response = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch('/api/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, screenshots: screenData })
         });
-        
-        const data = await response.json();
-        
+        const data = await res.json();
         if (data.success) {
-          msg.className = 'message success';
-          msg.textContent = '✅ ' + data.message;
+          msg.className = 'message success'; msg.textContent = '✅ ' + data.message;
           document.getElementById('username').value = '';
           document.getElementById('password').value = '';
           document.getElementById('password2').value = '';
           document.getElementById('preview1').style.display = 'none';
           document.getElementById('preview2').style.display = 'none';
           screenData = [null, null];
+          btn.textContent = 'Zarejestrowano!';
         } else {
-          msg.className = 'message error';
-          msg.textContent = '❌ ' + (data.error || 'Błąd!');
+          msg.className = 'message error'; msg.textContent = '❌ ' + (data.error || 'Błąd!');
+          btn.disabled = false; btn.textContent = 'Zarejestruj się';
         }
-      } catch (error) {
-        msg.className = 'message error';
-        msg.textContent = '❌ Błąd połączenia z serwerem!';
+      } catch {
+        msg.className = 'message error'; msg.textContent = '❌ Błąd połączenia z serwerem';
+        btn.disabled = false; btn.textContent = 'Zarejestruj się';
       }
-      
-      btn.disabled = false;
-      btn.textContent = 'Zarejestruj się';
     });
   </script>
 </body>
